@@ -9,7 +9,7 @@ st.title("Microsoft Stock Data Dashboard by Zahra Nensey")
 df = pd.read_csv("msft.csv")
 
 # Set up the 4 tabs on the Dashboard
-tabs = st.tabs(["📋 Raw Data", "📈 Price Chart", "📊 Volume Chart", "💰 Stock Summary",  "🔎 Interactive Explorer"])
+tabs = st.tabs(["📋 Raw Data", "📈 Price Chart", "📊 Volume Chart", "💸 Investment Simulator"])
 
 # Tab 1: Raw Data
 with tabs[0]:
@@ -26,49 +26,25 @@ with tabs[2]:
     st.subheader(f"Volume for MSFT")
     st.bar_chart(df['Volume'])
 
-# Tab 4: Stock Summary
+
+# Tab 4: Investment Simulator
 with tabs[3]:
-    st.subheader("Microsoft Stock Summary")
-    st.write("Average Closing Price: $", round(df["Close"].mean(), 2))
-    st.write("Highest Closing Price: $", df["Close"].max())
-    st.write("Lowest Closing Price: $", df["Close"].min())
+    st.subheader("What If I Invested in Microsoft?")
+
+    investment = st.number_input("Enter investment amount ($):", min_value=100, value=1000, step=100)
+
+    # Calculate investment value over time
+    stock_prices = df["Close"]
+    investment_values = investment * (stock_prices / stock_prices.iloc[0])
+
+    final_value = investment_values.iloc[-1]
+    profit = final_value - investment
+
+    st.write("Final Investment Value: $", round(final_value, 2))
+    st.write("Profit or Loss: $", round(profit, 2))
+
+    st.subheader("Investment Growth Over Time")
+    st.line_chart(investment_values)
 
 
-# Tab 5: Interactive Stock Explorer
-with tabs[4]:
-    st.subheader("Interactive Microsoft Stock Explorer")
 
-    # Prepare stock data
-    stock = df.copy()
-    stock["Date"] = pd.to_datetime(stock["Date"])
-    stock = stock.sort_values("Date")
-
-    # Choose what to analyze
-    metric = st.selectbox(
-        "Choose a metric:",
-        ["Closing Price", "Trading Volume"]
-    )
-
-    # Choose how many recent trading days to display
-    days = st.slider(
-        "Number of trading days:",
-        min_value=2,
-        max_value=len(stock),
-        value=len(stock)
-    )
-
-    filtered = stock.tail(days).set_index("Date")
-
-    # Interactive chart
-    if metric == "Closing Price":
-        st.line_chart(filtered["Close"])
-        st.metric(
-            "Average Closing Price",
-            f"${filtered['Close'].mean():.2f}"
-        )
-    else:
-        st.bar_chart(filtered["Volume"])
-        st.metric(
-            "Total Trading Volume",
-            f"{filtered['Volume'].sum():,.0f}"
-        )
